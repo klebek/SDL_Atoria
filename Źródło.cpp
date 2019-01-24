@@ -2,12 +2,26 @@
 #include <SDL_image.h>
 #include <stdio.h>
 #include <string>
+#include <chrono>
+#include <thread>
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <map>
+
+#include <functional>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
 bool got = false;
 int gold = 0;
+
+using namespace std;
+using namespace std::chrono;
+duration<double> dt(0.015); // w sekundach
+time_point<high_resolution_clock, duration<double> >prevTime = high_resolution_clock::now();
+
 
 const Uint8 *state = SDL_GetKeyboardState(NULL);
 
@@ -762,7 +776,7 @@ bool init()
 		}
 		else
 		{
-			gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+			gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 			if (gRenderer == NULL)
 			{
 				printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
@@ -943,6 +957,9 @@ int main(int argc, char* args[])
 	}
 	else
 	{
+		duration<double> dt(0.01);
+		this_thread::sleep_until(prevTime + dt);
+		prevTime = prevTime + dt;
 		if (!loadMedia())
 		{
 			printf("Failed to load media!\n");
@@ -1125,7 +1142,14 @@ int main(int argc, char* args[])
 				Dwarf.render();
 
 				SDL_RenderPresent(gRenderer);
+				SDL_Delay(8);
 
+				auto currentTime = std::chrono::high_resolution_clock::now();
+				//		std::this_thread::sleep_for( dt );
+				//		std::this_thread::sleep_until( prevTime + dt );
+				//		prevTime = prevTime + dt;// lub std::chrono::high_resolution_clock::now();
+				dt = currentTime - prevTime;
+				prevTime = currentTime;
 
 			}
 		}
